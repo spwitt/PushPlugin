@@ -43,7 +43,7 @@
 @property (nonatomic, retain) NSDictionary *notificationMessage;
 @property BOOL                          isInline;
 
-- (void)register:(NSMutableArray *)arguments withDict:(NSMutableDictionary *)options;
+- (void)register:(CDVInvokedUrlCommand *)command;
 
 - (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken;
 - (void)didFailToRegisterForRemoteNotificationsWithError:(NSError *)error;

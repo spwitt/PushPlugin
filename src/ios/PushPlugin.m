@@ -43,17 +43,18 @@
     [super dealloc];
 }
 
-- (void)unregister:(NSMutableArray *)arguments withDict:(NSMutableDictionary *)options
+- (void)unregister:(CDVInvokedUrlCommand *)command
 {
-	self.callbackId = [arguments pop];
+	self.callbackId = command.callbackId;
 
     [[UIApplication sharedApplication] unregisterForRemoteNotifications];
     [self successWithMessage:@"unregistered"];
 }
 
-- (void)register:(NSMutableArray *)arguments withDict:(NSMutableDictionary *)options
+- (void)register:(CDVInvokedUrlCommand *)command
 {
-	self.callbackId = [arguments pop];
+	self.callbackId = command.callbackId;
+    NSDictionary *options = [command.arguments objectAtIndex:0];
 
     UIRemoteNotificationType notificationTypes = UIRemoteNotificationTypeNone;
     id badgeArg = [options objectForKey:@"badge"];
@@ -97,7 +98,7 @@
 		[self notificationReceived];	// go ahead and process it
 }
 
-- (void)isEnabled:(NSMutableArray *)arguments withDict:(NSMutableDictionary *)options {
+- (void)isEnabled:(CDVInvokedUrlCommand *)command {
     UIRemoteNotificationType type = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
     NSString *jsStatement = [NSString stringWithFormat:@"navigator.PushPlugin.isEnabled = %d;", type != UIRemoteNotificationTypeNone];
     NSLog(@"JSStatement %@",jsStatement);
@@ -219,10 +220,10 @@
     }
 }
 
-- (void)setApplicationIconBadgeNumber:(NSMutableArray *)arguments withDict:(NSMutableDictionary *)options {
-	DLog(@"setApplicationIconBadgeNumber:%@\n withDict:%@", arguments, options);
-    
-	self.callbackId = [arguments pop];
+- (void)setApplicationIconBadgeNumber:(CDVInvokedUrlCommand *)command
+{
+	self.callbackId = command.callbackId;
+    NSDictionary *options = [command.arguments objectAtIndex:0];
     
     int badge = [[options objectForKey:@"badge"] intValue] ?: 0;
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:badge];
@@ -234,7 +235,7 @@
 {
     CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:message];
     
-    [self writeJavascript:[commandResult toSuccessCallbackString:self.callbackId]];
+    [self.commandDelegate sendPluginResult:commandResult callbackId:self.callbackId];
 }
 
 -(void)failWithMessage:(NSString *)message withError:(NSError *)error
@@ -242,7 +243,7 @@
     NSString        *errorMessage = (error) ? [NSString stringWithFormat:@"%@ - %@", message, [error localizedDescription]] : message;
     CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
     
-    [self writeJavascript:[commandResult toErrorCallbackString:self.callbackId]];
+    [self.commandDelegate sendPluginResult:commandResult callbackId:self.callbackId];
 }
 
 @end
